@@ -1,9 +1,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const dotenv = require('dotenv');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const { token } = require('../config.json');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+
+dotenv.config();
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -48,4 +50,4 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 });
 
-client.login(token);
+client.login(process.env.BOT_TOKEN);
