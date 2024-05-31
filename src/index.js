@@ -3,9 +3,18 @@ const path = require('node:path');
 const dotenv = require('dotenv');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ 
+	intents: [
+		GatewayIntentBits.Guilds, 
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.GuildMembers,
+	]
+ });
 
 dotenv.config();
+
+const urlRegex = `/(([a-z]+:\/\/)?(([a-z0-9\-]+\.)+([a-z]{2}|aero|arpa|biz|com|coop|edu|gov|info|int|jobs|mil|museum|name|nato|net|org|pro|travel|local|internal))(:[0-9]{1,5})?(\/[a-z0-9_\-\.~]+)*(\/([a-z0-9_\-\.]*)(\?[a-z0-9+_\-\.%=&amp;]*)?)?(#[a-zA-Z0-9!$&'()*+.=-_~:@/?]*)?)(\s+|$)/gi`
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, 'commands');
@@ -29,6 +38,26 @@ client.once(Events.ClientReady, readyClient => {
 	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
 
+// Autoresponder (Fixes Reddit embeds)
+client.on(Events.MessageCreate, async message => {
+	if (message.author.bot) return;
+	if (message.webhookId) return;
+
+	const content = message.content;
+	const channel = client.channels.cache.get(message.channel.id);
+
+	if (content.toLowerCase().includes('https://www.reddit.com')) {
+		try {
+			const newMessage = content.replaceAll('https://www.reddit.com', 'https://www.rxddit.com');
+			message.delete();
+			await channel.send(newMessage);
+			console.log(`Message: ${content} fixed.`);
+		} catch (error) {
+			console.error(`[ERROR] ${error}`);
+		}
+	}
+});
+
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 	const command = interaction.client.commands.get(interaction.commandName);
@@ -49,5 +78,6 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 	}
 });
+
 
 client.login(process.env.BOT_TOKEN);
