@@ -50,7 +50,10 @@ client.on(Events.MessageCreate, async message => {
 		try {
 			const newMessage = content.replaceAll('https://www.reddit.com', 'https://www.rxddit.com');
 			message.delete();
-			await channel.send(newMessage);
+			await channel.send({
+				content: newMessage,
+				flags: [ 4096 ]
+			});
 			console.log(`Message: ${content} fixed.`);
 		} catch (error) {
 			console.error(`[ERROR] ${error}`);
